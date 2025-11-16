@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sistema Intuitivo de Préstamo de Herramientas</title>
+    <style>
+    :root{
+    --bg:#0b101a;
+    --card:#0f1624;
+    --muted:#9ba6b2;
+    --accent:#7dd3fc;
+    --accent-dark:#3bb0da;
+    --danger:#ff6b6b;
+    --success:#6ee7b7;
+    --glass:rgba(255,255,255,0.05);
+    --glass-2:rgba(255,255,255,0.03);
+    }
+
+    /* Reset */
+    *{box-sizing:border-box; margin:0; padding:0}
+    html,body{height:100%}
+
+    /* Background */
+    body{
+    font-family:Inter,ui-sans-serif,system-ui,"Segoe UI",Roboto;
+    background: radial-gradient(circle at 20% 20%, #122338, #0b101a 70%);
+    color:#eaf3fb;
+    padding:32px;
+    -webkit-font-smoothing:antialiased;
+    animation:fadeIn .5s ease;
+    }
+
+    /* Layout */
+    .wrap{
+    max-width:1150px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:1fr 360px;
+    gap:20px;
+    align-items:start;
+    animation:rise .6s ease;
+    }
+
+    /* Header */
+    header{
+    grid-column:1/-1;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+    }
+
+    h1{
+    font-size:22px;
+    font-weight:800;
+    background:linear-gradient(90deg,#7dd3fc,#38bdf8);
+    -webkit-background-clip:text;
+    color:transparent;
+    letter-spacing:-0.5px;
+    animation:glowTitle 2s infinite alternate;
+    }
+
+    p.lead{
+    color:var(--muted);
+    font-size:14px;
+    margin-top:4px;
+    }
+
+    /* Cards */
+    .card{
+    background:var(--glass-2);
+    backdrop-filter:blur(12px);
+    border-radius:16px;
+    padding:18px;
+    border:1px solid rgba(255,255,255,0.06);
+    box-shadow:0 8px 25px rgba(0,0,0,0.5);
+    animation:slideUp .45s ease;
+    transition:transform .2s ease, box-shadow .2s ease;
+    }
+    .card:hover{
+    transform:translateY(-3px);
+    box-shadow:0 10px 30px rgba(0,0,0,0.55);
+    }
+
+    /* Forms */
+    form .row{display:flex;gap:10px;margin-bottom:10px}
+
+    label{
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+    margin-bottom:5px;
+    }
+
+    input,select,textarea{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.08);
+    background:rgba(255,255,255,0.02);
+    color:#eaf3fb;
+    transition:border .15s, box-shadow .15s;
+    }
+
+    input:focus,select:focus,textarea:focus{
+    border:1px solid var(--accent);
+    box-shadow:0 0 0 3px rgba(125,211,252,0.25);
+    outline:none;
+    }
+
+    /* Buttons */
+    button{
+    padding:12px 14px;
+    border-radius:10px;
+    border:0;
+    font-weight:700;
+    cursor:pointer;
+    font-size:14px;
+    background:linear-gradient(90deg,var(--accent),var(--accent-dark));
+    color:#05212d;
+    box-shadow:0 4px 14px rgba(125,211,252,0.28);
+    transition:.2s ease;
+    }
+    button:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 20px rgba(125,211,252,0.33);
+    }
+
+    button.ghost{
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(255,255,255,0.1);
+    color:var(--muted);
+    }
+    button.ghost:hover{
+    background:rgba(255,255,255,0.08);
+    border-color:rgba(255,255,255,0.18);
+    }
+
+    /* Lists */
+    .list{
+    margin-top:12px;
+    max-height:70vh;
+    overflow:auto;
+    padding-right:6px;
+    animation:fadeIn .4s ease;
+    }
+
+    /* Scrollbar */
+    .list::-webkit-scrollbar{
+    width:8px;
+    }
+    .list::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,0.08);
+    border-radius:4px;
+    }
+    .list::-webkit-scrollbar-thumb:hover{
+    background:rgba(255,255,255,0.12);
+    }
+
+    /* Items */
+    .item{
+    display:flex;
+    gap:14px;
+    align-items:flex-start;
+    padding:14px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.05);
+    background:var(--glass);
+    backdrop-filter:blur(8px);
+    margin-bottom:10px;
+    animation:itemIn .25s ease;
+    transition:background .15s;
+    }
+    .item:hover{
+    background:rgba(255,255,255,0.08);
+    }
+
+    .item .main{flex:1}
+
+    .meta{
+    font-size:13px;
+    color:var(--muted);
+    margin-top:6px;
+    }
+
+    /* Badges */
+    .badge{
+    font-size:12px;
+    padding:6px 10px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.1);
+    backdrop-filter:blur(10px);
+    }
+
+    .overdue .badge{
+    background:rgba(120,0,0,0.25);
+    border-color:#6d0c0c;
+    color:#ffbdbd;
+    }
+
+    .pending-count{
+    font-size:14px;
+    color:var(--danger);
+    font-weight:700;
+    margin-left:8px;
+    }
+
+    /* Controls */
+    .controls{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    }
+
+    .small{
+    padding:6px 10px;
+    font-size:12px;
+    border-radius:8px;
+    font-weight:600;
+    }
+
+    .returned{
+    opacity:0.55;
+    text-decoration:line-through;
+    }
+
+    /* Strike visual */
+    .strike-visual{
+    display:inline-block;
+    padding:2px 7px;
+    border-radius:6px;
+    background:rgba(0,0,0,0.35);
+    color:var(--muted);
+    font-size:12px;
+    }
+
+    /* Footer */
+    footer{
+    grid-column:1/-1;
+    margin-top:16px;
+    color:var(--muted);
+    font-size:13px;
+    text-align:center;
+    }
+
+    /* Animations */
+    @keyframes fadeIn{
+    from{opacity:0}
+    to{opacity:1}
+    }
+    @keyframes rise{
+    from{opacity:0; transform:translateY(8px)}
+    to{opacity:1; transform:none}
+    }
+    @keyframes slideUp{
+    from{opacity:0; transform:translateY(10px)}
+    to{opacity:1; transform:none}
+    }
+    @keyframes itemIn{
+    from{opacity:0; transform:translateY(4px)}
+    to{opacity:1; transform:none}
+    }
+    @keyframes glowTitle{
+    from{text-shadow:0 0 6px rgba(125,211,252,0.4)}
+    to{text-shadow:0 0 14px rgba(125,211,252,0.9)}
+    }
+    </style>
+
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Sistema de Préstamo de Herramientas</h1>
+        <p class="lead">Registra, marca y tacha como si fuera papel. Todo sincronizado.</p>
+      </div>
+      <div style="text-align:right">
+        <div class="badge">Inventario global • Firestore</div>
+      </div>
+    </header>
+
+    <!-- FORM -->
+    <section class="card">
+      <h2 style="margin:0 0 8px 0;font-size:16px">Registrar préstamo</h2>
+
+      <form id="loanForm" autocomplete="off">
+
+        <div class="row">
+          <div style="flex:1">
+            <label>Nombre del usuario</label>
+            <input id="person" type="text" required />
+          </div>
+
+          <div style="width:180px; position:relative">
+            <label>Herramienta</label>
+            <input id="tool" type="text" required />
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="width:120px">
+            <label>Cant.</label>
+            <input id="quantity" type="number" min="1" value="1" required />
+          </div>
+
+          <div style="flex:1">
+            <label>Fecha de entrega</label>
+            <input id="dueDate" type="date" required />
+          </div>
+
+          <div style="width:140px">
+            <label>Prioridad</label>
+            <select id="priority">
+              <option value="normal">Normal</option>
+              <option value="alta">Alta</option>
+              <option value="baja">Baja</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row" style="align-items:center">
+          <button type="submit">Añadir préstamo</button>
+          <button type="button" id="clearAll" class="ghost">Borrar todo</button>
+          <div style="flex:1"></div>
+        </div>
+
+      </form>
+
+      <hr style="border:none;height:12px">
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong>Préstamos activos</strong>
+        <div>
+          <button id="showAll" class="ghost small">Mostrar todos</button>
+          <button id="showOverdue" class="ghost small">Solo atrasados</button>
+          
+        </div>
+      </div>
+
+      <div id="activeList" class="list" aria-live="polite"></div>
+    </section>
+
+    <!-- ASIDE -->
+    <aside class="card">
+      <h2 style="margin:0 0 8px 0;font-size:16px">Panel</h2>
+
+      <div style="margin-bottom:10px">
+        <label>Buscar</label>
+        <input id="search" type="text" placeholder="Buscar por nombre o herramienta" />
+      </div>
+
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <div style="flex:1">
+          <label>Pendientes guardados</label>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <strong>Pendientes / Guardados</strong>
+        <div id="pendingCount" class="pending-count">0</div>
+      </div>
+
+      <div id="pendingList" class="list"></div>
+    </aside>
+
+    <footer class="card">
+      Todo sincroniza en tiempo real. Más limpio que tus hojas manchadas de grasa.
+    </footer>
+  </div>
+
+<!-- 🔥 AUTOCOMPLETADO & FIREBASE -->
+<script type="module">
+
+/* ============================================================
+   ===============  CARGAR tools.json  =========================
+   ============================================================ */
+let toolList = [];
+
+async function loadTools() {
+  try {
+    const res = await fetch("tools.json");
+    toolList = await res.json();
+    setupToolAutocomplete();
+  } catch (err) { console.error("Error cargando tools.json", err); }
+}
+loadTools();
+
+/* ============ AUTOCOMPLETADO ============ */
+function setupToolAutocomplete() {
+  const input = document.getElementById("tool");
+
+  const box = document.createElement("div");
+  box.id = "tool-autocomplete";
+  box.style.position = "absolute";
+  box.style.background = "var(--card)";
+  box.style.border = "1px solid rgba(255,255,255,0.1)";
+  box.style.borderRadius = "8px";
+  box.style.padding = "6px";
+  box.style.maxHeight = "160px";
+  box.style.overflowY = "auto";
+  box.style.display = "none";
+  box.style.zIndex = "9999";
+  document.body.appendChild(box);
+
+  input.addEventListener("input", () => {
+    const q = input.value.toLowerCase();
+    if (!q) { box.style.display="none"; return; }
+
+    const filtered = toolList.filter(t => t.toLowerCase().includes(q));
+    if (!filtered.length) { box.style.display="none"; return; }
+
+    const rect = input.getBoundingClientRect();
+    box.style.left = rect.left + window.scrollX + "px";
+    box.style.top = rect.bottom + window.scrollY + "px";
+    box.style.width = rect.width + "px";
+
+    box.innerHTML = filtered.map(t=>`<div style="padding:6px;cursor:pointer">${t}</div>`).join("");
+
+    box.querySelectorAll("div").forEach(div=>{
+      div.onclick = () => {
+        input.value = div.textContent;
+        box.style.display="none";
+      };
+    });
+
+    box.style.display="block";
+  });
+
+  document.addEventListener("click", e=>{
+    if (e.target !== input && !e.target.closest("#tool-autocomplete"))
+      box.style.display="none";
+  });
+}
+
+/* ============================================================
+   ==================  FIREBASE  ===============================
+   ============================================================ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, deleteDoc,
+  doc, updateDoc, onSnapshot, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC2Ay0jCDbBxTNYj4HAJar-9OO2QpAwBpM",
+  authDomain: "herramientasapp-71a62.firebaseapp.com",
+  projectId: "herramientasapp-71a62",
+  storageBucket: "herramientasapp-71a62.appspot.com",
+  messagingSenderId: "577208223554",
+  appId: "1:577208223554:web:2db1be614bf158b773aadb"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+/* 🧪💀 ADDED: pending */
+const pendingRef = collection(db, "pending");
+/* 🧪💀 END */
+
+const loansRef = collection(db, "loans");
+const historyRef = collection(db, "history");
+
+/* ============================================================
+   ==================  UTILIDADES  =============================
+   ============================================================ */
+
+const $ = (id) => document.getElementById(id);
+
+const todayISODate = () => {
+  const d = new Date();
+  const tzOffset = d.getTimezoneOffset() * 60000;
+  return new Date(d - tzOffset).toISOString().slice(0,10);
+};
+
+const escapeHtml = s =>
+  String(s||"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+/* ============================================================
+   =====================  ESTADO  ==============================
+   ============================================================ */
+let loans = [];
+let pending = []; /* 🧪💀 ADDED */
+
+/* Listener: LOANS */
+onSnapshot(loansRef, (snap) => {
+  loans = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderAll();
+});
+
+/* Listener: PENDING — 🧪💀 ADDED */
+onSnapshot(pendingRef, (snap) => {
+  pending = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderPendingList();
+});
+
+/* ============================================================
+   =========================== CRUD ============================
+   ============================================================ */
+
+async function addLoan({person, tool, quantity, dueDate, priority}) {
+  await addDoc(loansRef, {
+    person, tool, quantity, dueDate, priority,
+    returned:false,
+    createdAt: serverTimestamp()
+  });
+}
+
+async function removeLoan(id) {
+  await deleteDoc(doc(db, "loans", id));
+}
+
+/* 🧪💀 ADDED — mover a pendientes */
+async function moveToPending(id) {
+  const l = loans.find(x => x.id === id);
+  if (!l) return;
+
+  await addDoc(pendingRef, {
+    person: l.person,
+    tool: l.tool,
+    quantity: l.quantity,
+    dueDate: l.dueDate,
+    priority: l.priority,
+    createdAt: l.createdAt || null,
+    movedAt: new Date().toISOString()
+  });
+
+  await deleteDoc(doc(db, "loans", id));
+}
+/* 🧪💀 END */
+
+async function toggleReturned(id) {
+  const l = loans.find(x => x.id === id);
+  if (!l) return;
+
+  if (!l.returned) {
+    await addDoc(historyRef, {
+      person: l.person,
+      tool: l.tool,
+      quantity: l.quantity,
+      dueDate: l.dueDate,
+      priority: l.priority,
+      createdAt: l.createdAt || null,
+      returnedAt: new Date().toISOString()
+    });
+
+    await deleteDoc(doc(db, "loans", id));
+    return;
+  }
+
+  await updateDoc(doc(db, "loans", id), { returned: false });
+}
+
+/* ============================================================
+   ======================== RENDER ==============================
+   ============================================================ */
+
+function renderAll() {
+  renderActiveList();
+  renderPendingList();
+}
+
+function renderActiveList(query = "") {
+  const container = $("activeList");
+  container.innerHTML = "";
+
+  let data = loans;
+
+  if (query) {
+    data = loans.filter(l =>
+      l.person.toLowerCase().includes(query) ||
+      l.tool.toLowerCase().includes(query)
+    );
+  }
+
+  if (!data.length) {
+    container.innerHTML = `<div style="color:var(--muted);padding:12px">
+      No se encontraron resultados.
+    </div>`;
+    return;
+  }
+
+  for (const l of data) {
+    const it = document.createElement("div");
+    it.className = "item";
+
+    let created = "—";
+    if (l.createdAt?.toDate) created = l.createdAt.toDate().toLocaleString();
+
+    it.innerHTML = `
+      <div class="main">
+        <strong>${escapeHtml(l.person)}</strong>
+        <div class="meta">${escapeHtml(l.tool)} • Cant: ${l.quantity}</div>
+        <div class="meta">Creado: ${created}</div>
+      </div>
+
+      <div class="controls">
+        <button class="small ghost" data-action="pending" data-id="${l.id}">Pendiente</button>
+        <button class="small ghost" data-action="details" data-id="${l.id}">Detalles</button>
+        <button class="small" data-action="delete" data-id="${l.id}">Devolver</button>
+      </div>
+    `;
+
+    container.appendChild(it);
+  }
+}
+
+
+/* 🧪💀 NEW REAL pending list — basado en colección pending */
+function renderPendingList() {
+  const container = $("pendingList");
+  container.innerHTML = "";
+
+  $("pendingCount").textContent = pending.length;
+
+  if (!pending.length) {
+    container.innerHTML = `<div style="color:var(--muted);padding:12px">No hay pendientes guardados.</div>`;
+    return;
+  }
+
+  for (const l of pending) {
+    const it = document.createElement("div");
+    it.className = "item overdue";
+
+    it.innerHTML = `
+      <div class="main">
+        <strong>${escapeHtml(l.person)}</strong>
+        <div class="meta">${escapeHtml(l.tool)} • Cant: ${l.quantity}</div>
+      </div>
+
+      <div class="controls">
+        <button class="small" data-action="deletePending" data-id="${l.id}">Quitar</button>
+      </div>
+    `;
+
+    container.appendChild(it);
+  }
+}
+/* 🧪💀 END */
+
+/* ============================================================
+   ======================== EVENTOS ============================
+   ============================================================ */
+
+document.addEventListener("click", (ev)=>{
+  const btn = ev.target.closest("[data-action]");
+  if (!btn) return;
+
+  const action = btn.dataset.action;
+  const id = btn.dataset.id;
+
+  if (action === "delete") {
+    if (confirm("¿Seguro que deseas borrar este registro?"))
+      removeLoan(id);
+  }
+
+  if (action === "toggle") toggleReturned(id);
+
+  if (action === "details") {
+    const l = loans.find(x => x.id === id);
+    alert(`
+Usuario: ${l.person}
+Herramienta: ${l.tool}
+Cantidad: ${l.quantity}
+Vence: ${l.dueDate}
+Prioridad: ${l.priority}
+`);
+  }
+
+  /* 🧪💀 mover a pendientes */
+  if (action === "pending") {
+    if (confirm("¿Mover a pendientes?"))
+      moveToPending(id);
+  }
+
+  /* 🧪💀 borrar pendiente */
+  if (action === "deletePending") {
+    deleteDoc(doc(db, "pending", id));
+  }
+});
+
+$("loanForm").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+
+  const person = $("person").value.trim();
+  const tool = $("tool").value.trim();
+  const quantity = parseInt($("quantity").value,10);
+  const dueDate = $("dueDate").value;
+  const priority = $("priority").value;
+
+  if (!person || !tool || !quantity || !dueDate) {
+    alert("Completa todos los campos.");
+    return;
+  }
+
+  await addLoan({ person, tool, quantity, dueDate, priority });
+
+  $("loanForm").reset();
+  $("quantity").value = 1;
+  $("dueDate").value = todayISODate();
+});
+
+/* Init */
+(function init(){
+  $("dueDate").value = todayISODate();
+})();
+
+/* ============================================================
+   =================== BUSCADOR EN PANEL ======================
+   ============================================================ */
+
+$("search").addEventListener("input", () => {
+  const q = $("search").value.toLowerCase().trim();
+  renderActiveList(q);
+});
+
+</script>
+
+</body>
+</html>
