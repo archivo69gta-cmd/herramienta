@@ -871,6 +871,8 @@ import {
   };
 
 
+
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -1355,88 +1357,108 @@ function generatePendingPDF() {
   try {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF("p", "mm", "a4");
-
     const now = new Date();
 
     /* ===============================
        ENCABEZADO PROFESIONAL
        =============================== */
-    doc.setFillColor(96, 165, 250); // Azul suave
-    doc.rect(0, 0, 210, 20, "F");   // Barra superior
+    doc.setFillColor(96, 165, 250);
+    doc.rect(0, 0, 210, 20, "F");
 
     doc.setFontSize(16);
     doc.setTextColor(255, 255, 255);
     doc.text("Reporte de Pendientes", 10, 13);
 
     doc.setFontSize(10);
-    doc.text(`Generado: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`, 150, 13, {
-      align: "right",
-    });
+    doc.text(`Generado: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`, 200, 13, { align: "right" });
 
-    /* ===============================
-       ESPACIADO
-       =============================== */
     doc.setTextColor(0, 0, 0);
     doc.setFontSize(12);
-    doc.text("Herramientas con días de retraso", 10, 30);
+    let currentY = 30;
+    doc.text("Herramientas con días de retraso", 10, currentY);
+    currentY += 6;
 
     /* ===============================
-       PREPARAR DATA
+       AGRUPAR POR PERSONA
        =============================== */
-    const tableData = pending.map(item => {
-      const due = toValidDate(item.dueDate);
-
-      return [
-        safe(item.person),
-        safe(item.tool),
-        safe(item.quantity),
-        due ? diffDays(due).toString() : "N/A",
-        due ? due.toLocaleDateString() : "N/A",
-      ];
+    const grouped = {};
+    pending.forEach(item => {
+      if (!grouped[item.person]) grouped[item.person] = [];
+      grouped[item.person].push(item);
     });
 
-    /* ===============================
-       TABLA ESTÉTICA
-       =============================== */
-    doc.autoTable({
-      startY: 38,
-      head: [["Persona", "Herramienta", "Cantidad", "Días Afuera", "Fecha Entrega"]],
-      body: tableData,
+    const blockColors = [
+      [230, 245, 255], // azul muy suave
+      [245, 245, 245], // gris suave
+      [255, 240, 230], // naranja muy suave
+      [240, 255, 240]  // verde muy suave
+    ];
 
-      theme: "grid",
+    let colorIndex = 0;
 
-      headStyles: {
-        fillColor: [96, 165, 250],
-        textColor: 255,
-        fontSize: 11,
-        halign: "center",
-      },
-      styles: {
-        fontSize: 10,
-        cellPadding: 3,
-      },
-      bodyStyles: {
-        halign: "center",
-      },
-      alternateRowStyles: {
-        fillColor: [245, 245, 245],
-      },
-    });
+    for (const person in grouped) {
+      const items = grouped[person];
+
+      // Fondo para el bloque de persona
+      doc.setFillColor(...blockColors[colorIndex % blockColors.length]);
+      doc.rect(10, currentY - 4, 190, 6 + items.length * 8, "F");
+
+      // Sub-encabezado de persona
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Persona: ${person}`, 12, currentY);
+      currentY += 6;
+
+      // Datos de la tabla
+      const tableData = items.map(item => {
+        const due = toValidDate(item.dueDate);
+        return [
+          safe(item.person),
+          safe(item.tool),
+          safe(item.quantity),
+          due ? diffDays(due).toString() : "N/A",
+          due ? due.toLocaleDateString() : "N/A",
+        ];
+      });
+
+      // Crear tabla
+      doc.autoTable({
+        startY: currentY,
+        head: [["Persona", "Herramienta", "Cantidad", "Días Afuera", "Fecha Entrega"]],
+        body: tableData,
+        theme: "grid",
+        headStyles: {
+          fillColor: [96, 165, 250],
+          textColor: 255,
+          fontSize: 10,
+          halign: "center",
+        },
+        styles: { fontSize: 10, cellPadding: 3 },
+        bodyStyles: { halign: "center" },
+        alternateRowStyles: { fillColor: [255, 255, 255] },
+        didDrawPage: (data) => {
+          currentY = data.cursor.y + 8;
+        },
+      });
+
+      currentY += 4;
+      colorIndex++;
+
+      // Salto de página si es necesario
+      if (currentY > 270) {
+        doc.addPage();
+        currentY = 20;
+      }
+    }
 
     /* ===============================
        PIE DE PÁGINA
        =============================== */
     const pageCount = doc.internal.getNumberOfPages();
-
     doc.setFontSize(9);
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
-      doc.text(
-        `Página ${i} de ${pageCount}`,
-        105,
-        290,
-        { align: "center" }
-      );
+      doc.text(`Página ${i} de ${pageCount}`, 105, 290, { align: "center" });
     }
 
     /* ===============================
