@@ -862,12 +862,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyCsPATOHurWixNzoSGWmRXNK_qxQJVcK6g",
-    authDomain: "herramienta-2802d.firebaseapp.com",
-    projectId: "herramienta-2802d",
-    storageBucket: "herramienta-2802d.firebasestorage.app",
-    messagingSenderId: "985971934426",
-    appId: "1:985971934426:web:cb245e82e1ebe7399551e3"
+    apiKey: "x",
+    authDomain: "x",
+    projectId: "x",
+    storageBucket: "hx",
+    messagingSenderId: "x",
+    appId: "x"
   };
 
 
@@ -1282,35 +1282,68 @@ function renderPendingList() {
 
 // Función global para calcular días de retraso
 // Conversión robusta de fecha (acepta: Firestore Timestamp, string, ISO, Date)
+// ===============================
+//   Conversión universal de fechas
+// ===============================
 function toValidDate(input) {
   if (!input) return null;
 
   // Firestore Timestamp
-  if (typeof input === "object" && input.seconds) {
+  if (typeof input === "object" && input.seconds != null) {
     return new Date(input.seconds * 1000);
   }
 
-  // Convertir dd/mm/yyyy → yyyy-mm-dd
-  if (typeof input === "string" && input.includes("/")) {
+  // Firestore Timestamp .toDate()
+  if (typeof input === "object" && typeof input.toDate === "function") {
+    return input.toDate();
+  }
+
+  // Format dd/mm/yyyy
+  if (typeof input === "string" && input.includes("/") && input.split("/").length === 3) {
     const [d, m, y] = input.split("/");
     return new Date(`${y}-${m}-${d}`);
   }
 
+  // ISO, Date compatible
   const d = new Date(input);
   return isNaN(d.getTime()) ? null : d;
 }
 
-// Cálculo de días sin romper
+
+// ===============================
+//   Diferencia de días segura
+// ===============================
 function diffDays(date) {
   const d = toValidDate(date);
   if (!d) return "N/A";
+
   const now = new Date();
   return Math.floor((now - d) / (1000 * 60 * 60 * 24));
 }
 
-// Normalización de valores
+
+// ===============================
+//   Normalización total p/ PDF
+// ===============================
 function safe(v) {
   if (v === null || v === undefined) return "N/A";
+
+  // Firestore Timestamp
+  if (typeof v === "object" && typeof v.toDate === "function") {
+    return v.toDate().toISOString().split("T")[0];  // YYYY-MM-DD limpio
+  }
+
+  // Firestore Timestamp crudo {seconds, nanoseconds}
+  if (typeof v === "object" && v.seconds != null) {
+    return new Date(v.seconds * 1000).toISOString().split("T")[0];
+  }
+
+  // Date nativa
+  if (v instanceof Date) {
+    return v.toISOString().split("T")[0];
+  }
+
+  // Primitivos
   return v.toString();
 }
 
@@ -1322,35 +1355,103 @@ function generatePendingPDF() {
 
   try {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF("p", "mm", "a4");
 
-    doc.setFontSize(18);
-    doc.text("Reporte de Pendientes - Días de Retraso", 20, 20);
-    
+    const now = new Date();
 
-    const tableData = pending.map(item => [
-      safe(item.person),
-      safe(item.tool),
-      safe(item.quantity),
-      diffDays(item.dueDate),
-      (toValidDate(item.dueDate) ? toValidDate(item.dueDate).toLocaleDateString() : "N/A")
-    ]);
+    /* ===============================
+       ENCABEZADO PROFESIONAL
+       =============================== */
+    doc.setFillColor(96, 165, 250); // Azul suave
+    doc.rect(0, 0, 210, 20, "F");   // Barra superior
 
-    doc.autoTable({
-      head: [["Persona", "Herramienta", "Cantidad", "Días Afuera", "Fecha Entrega"]],
-      body: tableData,
-      startY: 40,
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [96, 165, 250] }
+    doc.setFontSize(16);
+    doc.setTextColor(255, 255, 255);
+    doc.text("Reporte de Pendientes", 10, 13);
+
+    doc.setFontSize(10);
+    doc.text(`Generado: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`, 150, 13, {
+      align: "right",
     });
 
+    /* ===============================
+       ESPACIADO
+       =============================== */
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(12);
+    doc.text("Herramientas con días de retraso", 10, 30);
+
+    /* ===============================
+       PREPARAR DATA
+       =============================== */
+    const tableData = pending.map(item => {
+      const due = toValidDate(item.dueDate);
+
+      return [
+        safe(item.person),
+        safe(item.tool),
+        safe(item.quantity),
+        due ? diffDays(due).toString() : "N/A",
+        due ? due.toLocaleDateString() : "N/A",
+      ];
+    });
+
+    /* ===============================
+       TABLA ESTÉTICA
+       =============================== */
+    doc.autoTable({
+      startY: 38,
+      head: [["Persona", "Herramienta", "Cantidad", "Días Afuera", "Fecha Entrega"]],
+      body: tableData,
+
+      theme: "grid",
+
+      headStyles: {
+        fillColor: [96, 165, 250],
+        textColor: 255,
+        fontSize: 11,
+        halign: "center",
+      },
+      styles: {
+        fontSize: 10,
+        cellPadding: 3,
+      },
+      bodyStyles: {
+        halign: "center",
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+    });
+
+    /* ===============================
+       PIE DE PÁGINA
+       =============================== */
+    const pageCount = doc.internal.getNumberOfPages();
+
+    doc.setFontSize(9);
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.text(
+        `Página ${i} de ${pageCount}`,
+        105,
+        290,
+        { align: "center" }
+      );
+    }
+
+    /* ===============================
+       GUARDAR
+       =============================== */
     doc.save("pendientes_reporte.pdf");
     console.log("PDF de pendientes descargado.");
+
   } catch (error) {
     console.error("Error generando PDF de pendientes:", error);
     alert("Error: " + error.message);
   }
 }
+
 
 /* ==========================================================
    GENERAR PDF DE ACTIVOS HOY
@@ -1360,10 +1461,18 @@ function generateActiveTodayPDF() {
 
   try {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
 
-    doc.setFontSize(18);
-    doc.text("Reporte de Préstamos Activos del Día", 20, 20);
+    // Estilos de título
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(33, 37, 41);
+    doc.text("Reporte de Préstamos Activos del Día", doc.internal.pageSize.getWidth() / 2, 40, { align: "center" });
+
+    // Línea decorativa
+    doc.setDrawColor(96, 165, 250);
+    doc.setLineWidth(1.5);
+    doc.line(40, 50, doc.internal.pageSize.getWidth() - 40, 50);
 
     const today = new Date().toISOString().split("T")[0];
 
@@ -1373,25 +1482,57 @@ function generateActiveTodayPDF() {
       return d.toISOString().split("T")[0] === today;
     });
 
-    const tableData = todaysLoans.map(item => [
-      safe(item.person),
-      safe(item.tool),
-      safe(item.quantity),
-      (toValidDate(item.dueDate) ? toValidDate(item.dueDate).toLocaleDateString() : "N/A"),
-      safe(item.priority)
-    ]);
+    const tableData = todaysLoans.map(item => {
+      const due = toValidDate(item.dueDate);
 
-    doc.autoTable({
-      head: [["Persona", "Herramienta", "Cantidad", "Fecha Entrega", "Prioridad"]],
-      body: tableData,
-      startY: 40,
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [96, 165, 250] }
+      return [
+        safe(item.person),
+        safe(item.tool),
+        safe(item.quantity),
+        due ? due.toLocaleDateString() : "N/A",
+        safe(item.priority)
+      ];
     });
 
     if (todaysLoans.length === 0) {
-      doc.text("No hay préstamos activos registrados hoy.", 20, 50);
+      doc.setFontSize(14);
+      doc.setTextColor(150, 150, 150);
+      doc.text("No hay préstamos activos registrados hoy.", doc.internal.pageSize.getWidth() / 2, 120, { align: "center" });
+    } else {
+      doc.autoTable({
+        startY: 70,
+        head: [["Persona", "Herramienta", "Cantidad", "Fecha Entrega", "Prioridad"]],
+        body: tableData,
+        theme: "grid",
+        headStyles: {
+          fillColor: [96, 165, 250],
+          textColor: 255,
+          fontStyle: "bold",
+          halign: "center"
+        },
+        bodyStyles: {
+          fontSize: 11,
+          textColor: 50
+        },
+        alternateRowStyles: {
+          fillColor: [245, 245, 245]
+        },
+        columnStyles: {
+          0: { cellWidth: 100 },
+          1: { cellWidth: 150 },
+          2: { cellWidth: 60, halign: "center" },
+          3: { cellWidth: 80, halign: "center" },
+          4: { cellWidth: 60, halign: "center" }
+        },
+        styles: { cellPadding: 6 }
+      });
     }
+
+    // Pie de página
+    const pageHeight = doc.internal.pageSize.getHeight();
+    doc.setFontSize(9);
+    doc.setTextColor(130);
+    doc.text(`Generado el ${new Date().toLocaleString()}`, doc.internal.pageSize.getWidth() - 40, pageHeight - 20, { align: "right" });
 
     doc.save("activos_hoy_reporte.pdf");
     console.log("PDF de activos hoy descargado.");
@@ -1799,6 +1940,22 @@ async function updateLoanFirestore(id, data) {
 
 
 document.addEventListener("click", (ev) => {
+
+  /* ===============  PDF PENDIENTES  ================= */
+  if (ev.target.closest("#downloadPendingPDF")) {
+      console.log("PDF pendientes");
+      generatePendingPDF();
+      return; // <- opcional, pero limpio
+  }
+
+  /* ===============  PDF ACTIVOS HOY  ================= */
+  if (ev.target.closest("#downloadActiveTodayPDF")) {
+      console.log("PDF activos hoy");
+      generateActiveTodayPDF();
+      return;
+  }
+
+
   const btn = ev.target.closest("[data-action]");
   if (!btn) return;
 
@@ -1943,15 +2100,7 @@ if (action === "delete") {
       .forEach(x => toggleReturned(x.id));
   }
 
-if (ev.target.closest("#downloadPendingPDF")) {
-    console.log("Botón PDF pendientes clickeado");
-    generatePendingPDF();
-}
 
-if (ev.target.closest("#downloadActiveTodayPDF")) {
-    console.log("Botón PDF activos hoy clickeado");
-    generateActiveTodayPDF();
-}
 
 
 });
@@ -1993,6 +2142,12 @@ $("search").addEventListener("input", () => {
   const q = $("search").value.toLowerCase().trim();
   renderActiveList(q);
 });
+
+window.safe = safe;
+window.diffDays = diffDays;
+window.toValidDate = toValidDate;
+window.generatePendingPDF = generatePendingPDF;
+window.generateActiveTodayPDF = generateActiveTodayPDF;
 
 </script>
 
