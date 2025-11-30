@@ -4,275 +4,679 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sistema Intuitivo de Préstamo de Herramientas</title>
-    <style>
-    :root{
-    --bg:#0b101a;
-    --card:#0f1624;
-    --muted:#9ba6b2;
-    --accent:#7dd3fc;
-    --accent-dark:#3bb0da;
-    --danger:#ff6b6b;
-    --success:#6ee7b7;
-    --glass:rgba(255,255,255,0.05);
-    --glass-2:rgba(255,255,255,0.03);
-    }
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<style>
+/* ============================================================
+   ========================= ROOT =============================
+   ============================================================ */
 
-    /* Reset */
-    *{box-sizing:border-box; margin:0; padding:0}
-    html,body{height:100%}
+:root {
+  --bg: #0a0f1c;
+  --card: #0e1523;
+  --muted: #8b9aab;
+  --accent: #60a5fa;
+  --accent-dark: #3b82f6;
+  --accent-glow: rgba(96, 165, 250, 0.6);
+  --danger: #f87171;
+  --success: #34d399;
+  --glass: rgba(255, 255, 255, 0.08);
+  --glass-2: rgba(255, 255, 255, 0.04);
+  --shadow-soft: rgba(0, 0, 0, 0.3);
+  --shadow-strong: rgba(0, 0, 0, 0.6);
+  --blur: blur(20px);
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --transition-bounce: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
 
-      @media (max-width: 768px) {
-    .wrap { grid-template-columns: 1fr; gap: 10px; }
-    .card { padding: 12px; }
-    button { padding: 10px 12px; font-size: 13px; }
-    }
+/* ============================================================
+   ========================= RESET =============================
+   ============================================================ */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  transition: var(--transition-fast);
+}
 
-    /* Background */
-    body{
-    font-family:Inter,ui-sans-serif,system-ui,"Segoe UI",Roboto;
-    background: radial-gradient(circle at 20% 20%, #122338, #0b101a 70%);
-    color:#eaf3fb;
-    padding:32px;
-    -webkit-font-smoothing:antialiased;
-    animation:fadeIn .5s ease;
-    }
+html, body {
+  height: 100%;
+  scroll-behavior: smooth;
+}
 
-    /* Layout */
-    .wrap{
-    max-width:1150px;
-    margin:0 auto;
-    display:grid;
-    grid-template-columns:1fr 360px;
-    gap:20px;
-    align-items:start;
-    animation:rise .6s ease;
-    }
+/* ============================================================
+   ======================== BACKGROUND =========================
+   ============================================================ */
 
-    /* Header */
-    header{
-    grid-column:1/-1;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:12px;
-    }
+body {
+  font-family: 'Inter', ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+  background: 
+    radial-gradient(circle at 20% 20%, #1e293b, #0a0f1c 70%),
+    linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #f1f5f9;
+  padding: 32px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  animation: bodyFadeIn 0.8s ease-out;
+  letter-spacing: 0.3px;
+  line-height: 1.6;
+}
 
-    h1{
-    font-size:22px;
-    font-weight:800;
-    background:linear-gradient(90deg,#7dd3fc,#38bdf8);
-    -webkit-background-clip:text;
-    color:transparent;
-    letter-spacing:-0.5px;
-    animation:glowTitle 2s infinite alternate;
-    }
+/* ============================================================
+   ========================== LAYOUT ===========================
+   ============================================================ */
 
-    p.lead{
-    color:var(--muted);
-    font-size:14px;
-    margin-top:4px;
-    }
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 24px;
+  align-items: start;
+  animation: layoutRise 0.7s ease-out forwards;
+}
 
-    /* Cards */
-    .card{
-    background:var(--glass-2);
-    backdrop-filter:blur(12px);
-    border-radius:16px;
-    padding:18px;
-    border:1px solid rgba(255,255,255,0.06);
-    box-shadow:0 8px 25px rgba(0,0,0,0.5);
-    animation:slideUp .45s ease;
-    transition:transform .2s ease, box-shadow .2s ease;
-    }
-    .card:hover{
-    transform:translateY(-3px);
-    box-shadow:0 10px 30px rgba(0,0,0,0.55);
-    }
+/* ============================================================
+   ========================== HEADER ===========================
+   ============================================================ */
 
-    /* Forms */
-    form .row{display:flex;gap:10px;margin-bottom:10px}
+header {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--glass);
+}
 
-    label{
-    font-size:12px;
-    font-weight:600;
-    color:var(--muted);
-    margin-bottom:5px;
-    }
+h1 {
+  font-size: 28px;
+  font-weight: 900;
+  background: linear-gradient(90deg, #60a5fa, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -0.8px;
+  animation: titleGlow 3s infinite ease-in-out;
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+  text-shadow: 0 0 20px var(--accent-glow);
+}
 
-    input,select,textarea{
-    width:100%;
-    padding:12px;
-    border-radius:10px;
-    border:1px solid rgba(255,255,255,0.08);
-    background:rgba(255,255,255,0.02);
-    color:#eaf3fb;
-    transition:border .15s, box-shadow .15s;
-    }
+p.lead {
+  color: var(--muted);
+  font-size: 15px;
+  margin-top: 6px;
+  opacity: 0.9;
+}
 
-    input:focus,select:focus,textarea:focus{
-    border:1px solid var(--accent);
-    box-shadow:0 0 0 3px rgba(125,211,252,0.25);
-    outline:none;
-    }
+/* ============================================================
+   =========================== CARDS ===========================
+   ============================================================ */
 
-    /* Buttons */
-    button{
-    padding:12px 14px;
-    border-radius:10px;
-    border:0;
-    font-weight:700;
-    cursor:pointer;
-    font-size:14px;
-    background:linear-gradient(90deg,var(--accent),var(--accent-dark));
-    color:#05212d;
-    box-shadow:0 4px 14px rgba(125,211,252,0.28);
-    transition:.2s ease;
-    }
-    button:hover{
-    transform:translateY(-2px);
-    box-shadow:0 6px 20px rgba(125,211,252,0.33);
-    }
+.card {
+  background: var(--glass-2);
+  backdrop-filter: var(--blur);
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 10px 30px var(--shadow-soft),
+    0 0 2px rgba(255, 255, 255, 0.1) inset,
+    0 0 40px rgba(96, 165, 250, 0.05);
+  animation: cardSlideIn 0.5s ease-out;
+  position: relative;
+  overflow: hidden;
+}
 
-    button.ghost{
-    background:rgba(255,255,255,0.03);
-    border:1px solid rgba(255,255,255,0.1);
-    color:var(--muted);
-    }
-    button.ghost:hover{
-    background:rgba(255,255,255,0.08);
-    border-color:rgba(255,255,255,0.18);
-    }
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
 
-    /* Lists */
-    .list{
-    margin-top:12px;
-    max-height:70vh;
-    overflow:auto;
-    padding-right:6px;
-    animation:fadeIn .4s ease;
-    }
+.card:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 
+    0 15px 40px var(--shadow-strong),
+    0 0 4px rgba(255, 255, 255, 0.15) inset,
+    0 0 60px rgba(96, 165, 250, 0.1);
+  filter: brightness(1.05);
+}
 
-    /* Scrollbar */
-    .list::-webkit-scrollbar{
-    width:8px;
-    }
-    .list::-webkit-scrollbar-thumb{
-    background:rgba(255,255,255,0.08);
-    border-radius:4px;
-    }
-    .list::-webkit-scrollbar-thumb:hover{
-    background:rgba(255,255,255,0.12);
-    }
+.card:hover::before {
+  opacity: 1;
+}
 
-    /* Items */
-    .item{
-    display:flex;
-    gap:14px;
-    align-items:flex-start;
-    padding:14px;
-    border-radius:12px;
-    border:1px solid rgba(255,255,255,0.05);
-    background:var(--glass);
-    backdrop-filter:blur(8px);
-    margin-bottom:10px;
-    animation:itemIn .25s ease;
-    transition:background .15s;
-    }
-    .item:hover{
-    background:rgba(255,255,255,0.08);
-    }
+/* ============================================================
+   =========================== FORMS ===========================
+   ============================================================ */
 
-    .item .main{flex:1}
+form .row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
 
-    .meta{
-    font-size:13px;
-    color:var(--muted);
-    margin-top:6px;
-    }
+label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
 
-    /* Badges */
-    .badge{
-    font-size:12px;
-    padding:6px 10px;
-    border-radius:999px;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.1);
-    backdrop-filter:blur(10px);
-    }
+input, select, textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--glass);
+  color: #f1f5f9;
+  font-size: 15px;
+  transition: var(--transition-smooth);
+}
 
-    .overdue .badge{
-    background:rgba(120,0,0,0.25);
-    border-color:#6d0c0c;
-    color:#ffbdbd;
-    }
+input:focus, select:focus, textarea:focus {
+  transform: scale(1.02);
+  border: 1px solid var(--accent);
+  box-shadow: 
+    0 0 0 4px rgba(96, 165, 250, 0.2),
+    0 0 20px rgba(96, 165, 250, 0.1);
+  outline: none;
+  background: rgba(255, 255, 255, 0.06);
+}
 
-    .pending-count{
-    font-size:14px;
-    color:var(--danger);
-    font-weight:700;
-    margin-left:8px;
-    }
+/* ============================================================
+   ========================== BUTTONS ==========================
+   ============================================================ */
 
-    /* Controls */
-    .controls{
-    display:flex;
-    gap:8px;
-    align-items:center;
-    }
+button {
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 0;
+  font-weight: 800;
+  cursor: pointer;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 50%, #1e40af 100%);
+  color: #0f172a;
+  box-shadow: 
+    0 6px 20px rgba(96, 165, 250, 0.3),
+    0 0 2px rgba(255, 255, 255, 0.2) inset;
+  transition: var(--transition-bounce);
+  position: relative;
+  overflow: hidden;
+}
 
-    .small{
-    padding:6px 10px;
-    font-size:12px;
-    border-radius:8px;
-    font-weight:600;
-    }
+button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
 
-    .returned{
-    opacity:0.55;
-    text-decoration:line-through;
-    }
+button:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 
+    0 8px 30px rgba(96, 165, 250, 0.4),
+    0 0 4px rgba(255, 255, 255, 0.3) inset;
+  filter: brightness(1.1);
+}
 
-    /* Strike visual */
-    .strike-visual{
-    display:inline-block;
-    padding:2px 7px;
-    border-radius:6px;
-    background:rgba(0,0,0,0.35);
-    color:var(--muted);
-    font-size:12px;
-    }
+button:hover::before {
+  left: 100%;
+}
 
-    /* Footer */
-    footer{
-    grid-column:1/-1;
-    margin-top:16px;
-    color:var(--muted);
-    font-size:13px;
-    text-align:center;
-    }
+button:active {
+  transform: scale(0.98);
+}
 
-    /* Animations */
-    @keyframes fadeIn{
-    from{opacity:0}
-    to{opacity:1}
-    }
-    @keyframes rise{
-    from{opacity:0; transform:translateY(8px)}
-    to{opacity:1; transform:none}
-    }
-    @keyframes slideUp{
-    from{opacity:0; transform:translateY(10px)}
-    to{opacity:1; transform:none}
-    }
-    @keyframes itemIn{
-    from{opacity:0; transform:translateY(4px)}
-    to{opacity:1; transform:none}
-    }
-    @keyframes glowTitle{
-    from{text-shadow:0 0 6px rgba(125,211,252,0.4)}
-    to{text-shadow:0 0 14px rgba(125,211,252,0.9)}
-    }
-    </style>
+button.ghost {
+  background: var(--glass);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--muted);
+  box-shadow: 0 4px 15px var(--shadow-soft);
+}
+
+button.ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #f1f5f9;
+}
+
+/* ============================================================
+   =========================== LISTS ===========================
+   ============================================================ */
+
+.list {
+  margin-top: 16px;
+  max-height: 75vh;
+  overflow: auto;
+  padding-right: 8px;
+  animation: listFadeIn 0.6s ease-out;
+}
+
+/* Scrollbar */
+.list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.list::-webkit-scrollbar-track {
+  background: var(--glass-2);
+  border-radius: 5px;
+}
+
+.list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================================
+   =========================== ITEMS ===========================
+   ============================================================ */
+
+.item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--glass);
+  backdrop-filter: blur(15px);
+  margin-bottom: 12px;
+  animation: itemSlideIn 0.4s ease-out;
+  position: relative;
+  transition: var(--transition-smooth);
+}
+
+.item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px) scale(1.01);
+  box-shadow: 0 8px 25px var(--shadow-soft);
+  filter: brightness(1.05);
+}
+
+.item .main {
+  flex: 1;
+}
+
+.meta {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 8px;
+  opacity: 0.8;
+}
+
+/* Badges */
+.badge {
+  font-size: 12px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  background: var(--glass);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.overdue .badge {
+  background: rgba(185, 28, 28, 0.3);
+  border-color: #dc2626;
+  color: #fecaca;
+  box-shadow: 0 0 10px rgba(220, 38, 38, 0.3);
+}
+
+/* Pending count */
+.pending-count {
+  font-size: 15px;
+  color: var(--danger);
+  font-weight: 800;
+  margin-left: 10px;
+  animation: pulse 2s infinite;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.small {
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.returned {
+  opacity: 0.6;
+  text-decoration: line-through;
+  filter: grayscale(0.8) blur(0.5px);
+  transition: opacity 0.3s ease;
+}
+
+/* Strike label */
+.strike-visual {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ============================================================
+   =========================== FOOTER ==========================
+   ============================================================ */
+
+footer {
+  grid-column: 1 / -1;
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+  opacity: 0.8;
+}
+
+/* ============================================================
+   =============== ANIMACIONES EXTREMADAMENTE FLUIDAS =========
+   ============================================================ */
+
+@keyframes bodyFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes layoutRise {
+  0% {
+    opacity: 0;
+    transform: translateY(40px) scale(0.95);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-8px) scale(1.02);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes cardSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+    filter: blur(6px);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(-5px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes listFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes itemSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-15px) scale(0.96) rotateZ(-0.5deg);
+    filter: blur(4px);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(3px) scale(1.01) rotateZ(0deg);
+  }
+  100% {
+    transform: translateX(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes titleGlow {
+  0%, 100% {
+    text-shadow: 
+      0 0 10px var(--accent-glow),
+      0 0 20px var(--accent-glow),
+      0 0 30px var(--accent-glow);
+    filter: brightness(1);
+  }
+  50% {
+    text-shadow: 
+      0 0 20px var(--accent-glow),
+      0 0 40px var(--accent-glow),
+      0 0 60px var(--accent-glow);
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* ============================================================
+   =============== MICRO-TRANSICIONES PROFESIONALES ===========
+   ============================================================ */
+
+.card, .item, button, input, select, textarea {
+  transition: 
+    background var(--transition-smooth),
+    border var(--transition-fast),
+    box-shadow var(--transition-smooth),
+    transform var(--transition-bounce),
+    filter var(--transition-smooth);
+  will-change: transform, opacity, filter;
+}
+
+/* Hover superior */
+.card:hover {
+  transform: translateY(-8px) scale(1.02);
+  filter: brightness(1.08);
+}
+
+.item:hover {
+  transform: translateX(6px) scale(1.01);
+  filter: brightness(1.08);
+}
+
+/* Botones con presión realista */
+button:active {
+  transform: scale(0.96);
+}
+
+/* Inputs con retroiluminación más suave */
+input:focus, select:focus, textarea:focus {
+  box-shadow: 
+    0 0 0 5px rgba(96, 165, 250, 0.25),
+    0 0 30px rgba(96, 165, 250, 0.1);
+}
+
+/* ============================================================
+   ======================= RESPONSIVE PRO+ =====================
+   ============================================================ */
+
+@media (max-width: 768px) {
+  body {
+    padding: 20px;
+    letter-spacing: 0.2px;
+  }
+
+  .wrap {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    animation: layoutRise 0.8s ease-out;
+  }
+
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  h1 {
+    font-size: 24px;
+    animation: titleGlow 4s infinite ease-in-out;
+  }
+
+  .card {
+    padding: 18px;
+    border-radius: 18px;
+    animation: cardSlideIn 0.6s ease-out;
+  }
+
+  form .row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  input, select, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+
+  .list {
+    max-height: calc(100vh - 260px);
+    padding-right: 6px;
+    animation: listFadeIn 0.7s ease-out;
+  }
+
+  .item {
+    padding: 16px;
+    border-radius: 14px;
+    gap: 14px;
+    animation: itemSlideIn 0.5s ease-out;
+  }
+
+  .item .main h3 {
+    font-size: 17px !important;
+  }
+
+  .meta {
+    font-size: 14px;
+  }
+
+  .badge {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  footer {
+    padding-top: 16px;
+    font-size: 14px;
+  }
+}
+
+/* ============================================================
+   ========================= CLOSE PANEL =======================
+   ============================================================ */
+
+#closePanel {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--muted) !important;
+  font-size: 22px !important;
+  font-weight: 700;
+  line-height: 0;
+  backdrop-filter: var(--blur);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 15px var(--shadow-soft);
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+}
+
+#closePanel:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 6px 20px var(--shadow-strong);
+  color: #f1f5f9 !important;
+}
+
+#closePanel:active {
+  transform: scale(0.95) rotate(90deg);
+}
+
+@media (max-width: 768px) {
+  #closePanel {
+    width: 44px;
+    height: 44px;
+    font-size: 26px !important;
+    right: 16px !important;
+    top: 16px !important;
+  }
+}
+
+
+
+</style>
+
 
 </head>
 <body>
@@ -372,11 +776,19 @@
     </aside>
 
     <footer class="card">
-      En tiempo real!.
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <span>En tiempo real!.</span>
+        <div style="display: flex; gap: 10px;">
+        <button id="downloadPendingPDF" class="small ghost">📄 PDF Pendientes</button>
+        <button id="downloadActiveTodayPDF" class="small ghost">📄 PDF Activos Hoy</button>
+        </div>
+    </div>
     </footer>
   </div>
 
 <!-- 🔥 AUTOCOMPLETADO & FIREBASE -->
+
+
 <script type="module">
 
 /* ============================================================
@@ -490,19 +902,26 @@ const escapeHtml = s =>
    ============================================================ */
 let loans = [];
 let pending = []; /* 🧪💀 ADDED */
+let currentPanelPerson = null;
+let currentPanelType = null;
 
 /* Listener: LOANS */
 onSnapshot(loansRef, (snap) => {
   loans = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderAll();
+  if (currentPanelPerson && currentPanelType === "active") {
+    openDetails(currentPanelPerson, currentPanelType);
+  }
 });
 
-/* Listener: PENDING — 🧪💀 ADDED */
+/* Listener: PENDING */
 onSnapshot(pendingRef, (snap) => {
   pending = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   renderPendingList();
+  if (currentPanelPerson && currentPanelType === "pending") {
+    openDetails(currentPanelPerson, currentPanelType);
+  }
 });
-
 /* ============================================================
    =========================== CRUD ============================
    ============================================================ */
@@ -510,8 +929,8 @@ onSnapshot(pendingRef, (snap) => {
 async function addLoan({person, tool, quantity, dueDate, priority}) {
   await addDoc(loansRef, {
     person, tool, quantity, dueDate, priority,
-    returned:false,
-    createdAt: serverTimestamp()
+    returned: false,
+    createdAt: new Date().toISOString()  // Cambia aquí: fecha local inmediata
   });
 }
 
@@ -522,21 +941,101 @@ async function removeLoan(id) {
 /* 🧪💀 ADDED — mover a pendientes */
 /* ==================== MOVE TO PENDING ==================== */
 async function moveToPending(id) {
-  const l = loans.find(x => x.id === id);
-  if (!l) return;
+  // Buscar el préstamo
+  const loanItem = loans.find(x => x.id === id);
+  if (!loanItem) return;
 
-  await addDoc(pendingRef, {
-    person: l.person,
-    tool: l.tool,
-    quantity: l.quantity,
-    dueDate: l.dueDate,
-    priority: l.priority,
-    createdAt: l.createdAt || new Date(),
-    movedAt: serverTimestamp() // <-- Timestamp real
-  });
+  try {
+    // 1️⃣ Agregar a pendientes en Firestore
+    await addDoc(pendingRef, {
+      person: loanItem.person,
+      tool: loanItem.tool,
+      quantity: loanItem.quantity,
+      dueDate: loanItem.dueDate,
+      priority: loanItem.priority,
+      createdAt: loanItem.createdAt || new Date(),
+      movedAt: serverTimestamp()
+    });
 
-  await deleteDoc(doc(db, "loans", id));
+    // 2️⃣ Eliminar de Firestore activo
+    await deleteDoc(doc(db, "loans", id));
+
+    // 3️⃣ Actualizar arrays locales
+    loans = loans.filter(x => x.id !== id); // Quitar de loans
+    pending.push({
+      ...loanItem,
+      movedAt: new Date() // Para mantener consistencia visual
+    });
+
+    // 4️⃣ Actualizar UI visualmente (remover tarjeta del panel)
+    const detailsContent = $("detailsContent");
+    const card = detailsContent.querySelector(`.loan-item[data-id="${id}"]`);
+    if (card) {
+      // Animación de desvanecimiento
+      card.style.transition = "opacity 0.4s, transform 0.4s";
+      card.style.opacity = "0";
+      card.style.transform = "translateX(50px) rotate(-5deg)";
+      
+      // Después de la animación, remover el nodo del DOM
+      setTimeout(() => card.remove(), 400);
+    }
+
+    // 5️⃣ Refrescar el panel de detalles si está abierto para esta persona en "active"
+    if (currentPanelPerson === loanItem.person && currentPanelType === "active") {
+      // Esperar un poco para que los listeners de Firestore se disparen y actualicen los arrays
+      setTimeout(() => {
+        openDetails(currentPanelPerson, "active");
+      }, 100); // Pequeño delay para sincronización
+    }
+
+  } catch (err) {
+    console.error("Error moviendo a pendientes:", err);
+  }
 }
+
+
+async function removeQuantity(id, collectionName, amountToRemove) {
+  const isPending = collectionName === "pending";
+  const list = isPending ? pending : loans;
+  const docRef = doc(db, collectionName, id);
+
+  const item = list.find(x => x.id === id);
+  if (!item) return;
+
+  if (amountToRemove >= item.quantity) {
+    // BORRAR COMPLETAMENTE
+    await deleteDoc(docRef);
+
+    // ELIMINAR DEL ARRAY LOCAL
+    const idx = list.findIndex(x => x.id === id);
+    if (idx !== -1) list.splice(idx, 1);
+
+    // ACTUALIZAR PANEL DETALLES SI ESTÁ ABIERTO
+    removeItemFromDetails(id);
+  } else {
+    // RESTAR
+    item.quantity -= amountToRemove;
+
+    // ACTUALIZAR FIRESTORE
+    await updateDoc(docRef, { quantity: item.quantity });
+
+    // ACTUALIZAR PANEL DETALLES SI ESTÁ ABIERTO
+    updateItemQuantityInDetails(id, item.quantity);
+  }
+
+  // REFRESCAR PANEL COMPLETO (opcional para garantizar coherencia)
+  if ($("sidePanel").style.right === "0") {
+    openDetails(item.person, isPending ? "pending" : "active");
+  }
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -593,17 +1092,51 @@ async function returnFromPending(id) {
 function removeItemFromDetails(id) {
   const details = $("detailsContent");
   const itemEl = details.querySelector(`[data-id="${id}"]`);
-  if (itemEl) {
+  if (!itemEl) return;
+
+  // Animación de desvanecimiento y desplazamiento
+  itemEl.style.transition = "opacity 0.4s, transform 0.4s";
+  itemEl.style.opacity = "0";
+  itemEl.style.transform = "translateX(50px) rotate(-5deg)";
+
+  // Eliminar del DOM después de la animación
+  setTimeout(() => {
     itemEl.remove();
+
+    // Actualizar el contador de registros en el panel
+    const counterEl = details.querySelector("div[style*='opacity:.75']"); // Cambié a .75 para coincidir con tu estilo de header
+    if (counterEl) {
+      const current = parseInt(counterEl.textContent.match(/\d+/)[0], 10);
+      counterEl.textContent = `Total de registros: ${Math.max(0, current - 1)}`;
+    }
+  }, 400);
+}
+
+function updateItemQuantityInDetails(id, newQty) {
+  const details = $("detailsContent");
+  const itemEl = details.querySelector(`[data-id="${id}"]`);
+  if (!itemEl) return;
+
+  if (newQty <= 0) {
+    // Elimina la tarjeta si la cantidad llega a 0
+    itemEl.remove();
+    return;
   }
 
-  // Actualiza el contador de registros en el panel
-  const counterEl = details.querySelector("div[style*='opacity:.7']");
-  if (counterEl) {
-    const current = parseInt(counterEl.textContent.match(/\d+/)[0], 10);
-    counterEl.textContent = `Total de registros: ${current - 1}`;
+  // Busca el div que contiene "Cantidad:" sin importar emojis ni espacios
+  const qtyDiv = Array.from(itemEl.querySelectorAll("div"))
+    .find(d => /Cantidad:/.test(d.textContent));
+
+  if (qtyDiv) {
+    // Reescribe solo el número manteniendo el emoji
+    const parts = qtyDiv.textContent.split("Cantidad:");
+    qtyDiv.textContent = `${parts[0]}Cantidad: ${newQty}`;
   }
 }
+
+
+
+
 
 
 
@@ -617,6 +1150,8 @@ function renderAll() {
 }
 
 function closeDetails() {
+  currentPanelPerson = null;
+  currentPanelType = null;
   $("sidePanel").style.right = "-500px";
 }
 
@@ -673,6 +1208,11 @@ function renderActiveList(query = "") {
    ============  PENDIENTES (COLORES POR DÍAS)  ===============
    ============================================================ */
 
+
+
+   
+/* ======================= RENDER PENDING LIST ======================= */
+/* ======================= RENDER PENDING LIST ======================= */
 /* ======================= RENDER PENDING LIST ======================= */
 function renderPendingList() {
   const container = $("pendingList");
@@ -701,11 +1241,7 @@ function renderPendingList() {
     return "#f87171";
   };
 
-  const diffDays = (date) => {
-    const now = new Date();
-    return Math.floor((now - date) / (1000 * 60 * 60 * 24));
-  };
-
+  // Usa la función global diffDays (definida abajo)
   for (const person in groups) {
     const items = groups[person].sort((a,b) => order[a.priority] - order[b.priority]);
     const total = items.length;
@@ -744,9 +1280,130 @@ function renderPendingList() {
   }
 }
 
+// Función global para calcular días de retraso
+// Conversión robusta de fecha (acepta: Firestore Timestamp, string, ISO, Date)
+function toValidDate(input) {
+  if (!input) return null;
 
+  // Firestore Timestamp
+  if (typeof input === "object" && input.seconds) {
+    return new Date(input.seconds * 1000);
+  }
+
+  // Convertir dd/mm/yyyy → yyyy-mm-dd
+  if (typeof input === "string" && input.includes("/")) {
+    const [d, m, y] = input.split("/");
+    return new Date(`${y}-${m}-${d}`);
+  }
+
+  const d = new Date(input);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// Cálculo de días sin romper
+function diffDays(date) {
+  const d = toValidDate(date);
+  if (!d) return "N/A";
+  const now = new Date();
+  return Math.floor((now - d) / (1000 * 60 * 60 * 24));
+}
+
+// Normalización de valores
+function safe(v) {
+  if (v === null || v === undefined) return "N/A";
+  return v.toString();
+}
+
+/* ==========================================================
+   GENERAR PDF DE PENDIENTES
+   ========================================================== */
+function generatePendingPDF() {
+  console.log("Generando PDF de pendientes...");
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Reporte de Pendientes - Días de Retraso", 20, 20);
+    
+
+    const tableData = pending.map(item => [
+      safe(item.person),
+      safe(item.tool),
+      safe(item.quantity),
+      diffDays(item.dueDate),
+      (toValidDate(item.dueDate) ? toValidDate(item.dueDate).toLocaleDateString() : "N/A")
+    ]);
+
+    doc.autoTable({
+      head: [["Persona", "Herramienta", "Cantidad", "Días Afuera", "Fecha Entrega"]],
+      body: tableData,
+      startY: 40,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [96, 165, 250] }
+    });
+
+    doc.save("pendientes_reporte.pdf");
+    console.log("PDF de pendientes descargado.");
+  } catch (error) {
+    console.error("Error generando PDF de pendientes:", error);
+    alert("Error: " + error.message);
+  }
+}
+
+/* ==========================================================
+   GENERAR PDF DE ACTIVOS HOY
+   ========================================================== */
+function generateActiveTodayPDF() {
+  console.log("Generando PDF de activos hoy...");
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Reporte de Préstamos Activos del Día", 20, 20);
+
+    const today = new Date().toISOString().split("T")[0];
+
+    const todaysLoans = loans.filter(item => {
+      const d = toValidDate(item.createdAt);
+      if (!d) return false;
+      return d.toISOString().split("T")[0] === today;
+    });
+
+    const tableData = todaysLoans.map(item => [
+      safe(item.person),
+      safe(item.tool),
+      safe(item.quantity),
+      (toValidDate(item.dueDate) ? toValidDate(item.dueDate).toLocaleDateString() : "N/A"),
+      safe(item.priority)
+    ]);
+
+    doc.autoTable({
+      head: [["Persona", "Herramienta", "Cantidad", "Fecha Entrega", "Prioridad"]],
+      body: tableData,
+      startY: 40,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [96, 165, 250] }
+    });
+
+    if (todaysLoans.length === 0) {
+      doc.text("No hay préstamos activos registrados hoy.", 20, 50);
+    }
+
+    doc.save("activos_hoy_reporte.pdf");
+    console.log("PDF de activos hoy descargado.");
+  } catch (error) {
+    console.error("Error generando PDF de activos hoy:", error);
+    alert("Error: " + error.message);
+  }
+}
 
 /* 🧪💀 END */
+
+
 
 
 
@@ -758,96 +1415,381 @@ function renderPendingList() {
 function openDetails(personName, type = "active") {
   const panel = $("sidePanel");
   const details = $("detailsContent");
-
+    
   const listToShow = type === "pending" ? pending : loans;
-  const items = listToShow.filter(x => x.person === personName);
+  const items = listToShow.filter(x => x.person === personName && x.quantity > 0);
 
+  currentPanelPerson = personName;
+  currentPanelType = type;
   const diffDays = (date) => {
     const now = new Date();
     return Math.floor((now - date) / (1000 * 60 * 60 * 24));
   };
 
   const colorByDays = (days) => {
-    if (days < 10) return "#4ade80";
-    if (days < 20) return "#facc15";
-    return "#f87171";
+    if (days < 10) return "#10b981"; // verde esmeralda
+    if (days < 20) return "#f59e0b"; // ámbar intenso
+    return "#dc2626"; // rojo carmesí
   };
 
+  const formatDateTime = (dateInput) => {
+    if (!dateInput) return "—";
+    const d = typeof dateInput.toDate === "function" ? dateInput.toDate() : new Date(dateInput);
+    return d.toLocaleString("es-ES", { dateStyle: "medium", timeStyle: "short" });
+  };
+
+  // Función para animar entrada de elementos
+  const animateIn = (element, delay = 0) => {
+    setTimeout(() => {
+      element.style.opacity = '0';
+      element.style.transform = 'translateY(20px)';
+      element.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+      requestAnimationFrame(() => {
+        element.style.opacity = '1';
+        element.style.transform = 'translateY(0)';
+      });
+    }, delay);
+  };
+
+  // Cabecera principal con animación de entrada
   let html = `
-    <div style="margin-bottom:8px;font-size:18px;font-weight:700">
+    <div id="header" style="
+      margin-bottom: 32px;
+      font-size: 32px;
+      font-weight: 900;
+      color: #06b6d4;
+      letter-spacing: 1.5px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    ">
       ${personName}
     </div>
-    <div style="opacity:.7;margin-bottom:20px">
-      Total de registros: ${items.length}
+    <div id="total" style="
+      opacity: 0.8;
+      margin-bottom: 40px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #e2e8f0;
+      background: linear-gradient(135deg, #1e293b, #334155);
+      padding: 12px 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      transform: translateY(-10px);
+      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+    ">
+      📊 Total de registros: ${items.length}
     </div>
   `;
 
-  for (const i of items) {
+  // Generar items con animaciones escalonadas
+  items.forEach((i, index) => {
     const isPending = type === "pending";
-    let days = 0;
-    let borderColor = "transparent";
+    const days = isPending && i.dueDate ? diffDays(new Date(i.dueDate)) : 0;
+    const borderColor = isPending ? colorByDays(days) : "#0ea5e9";
 
-    if (isPending) {
-      // Usar dueDate para calcular días (consistente con la lista principal)
-      const baseDate = new Date(i.dueDate);  // Asume que dueDate es una cadena ISO (YYYY-MM-DD)
-      days = diffDays(baseDate);
-      borderColor = colorByDays(days);
-    }
+    const createdAtStr = formatDateTime(i.createdAt);
+    const dueDateStr = i.dueDate || "—";
 
     html += `
       <div class="loan-item" data-id="${i.id}" style="
-        padding:12px 14px;
-        margin-bottom:10px;
-        border-radius:12px;
-        background:rgba(255,255,255,0.05);
-        border:1px solid rgba(255,255,255,0.1);
-        ${isPending ? `border-left:6px solid ${borderColor};` : ""}
-        position:relative;
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(145deg, rgba(15,23,42,0.98), rgba(30,41,59,0.98));
+        border-left: 8px solid ${borderColor};
+        border-radius: 24px;
+        padding: 28px;
+        margin-bottom: 28px;
+        box-shadow: 0 16px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+        cursor: pointer;
+      "
+      onmouseover="
+        this.style.transform = 'translateY(-8px) scale(1.03)';
+        this.style.boxShadow = '0 24px 48px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.2)';
+        this.style.borderLeftWidth = '12px';
+      " 
+      onmouseout="
+        this.style.transform = 'translateY(0) scale(1)';
+        this.style.boxShadow = '0 16px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)';
+        this.style.borderLeftWidth = '8px';
       ">
-        <div style="font-size:16px;font-weight:600;color:#7dd3fc">
-          ${i.tool || "—"}
+
+        <!-- Información principal con mejor diseño -->
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+          <div style="flex: 1; min-width: 0;">
+            <div style="
+              font-size: 24px;
+              font-weight: 800;
+              color: #38bdf8;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              margin-bottom: 8px;
+              text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+            ">
+              ${i.tool || "—"}
+            </div>
+            <span style="
+              background: ${i.priority === "alta" ? "linear-gradient(135deg, #ef4444, #dc2626)" : i.priority === "media" ? "linear-gradient(135deg, #f59e0b, #d97706)" : "linear-gradient(135deg, #10b981, #059669)"};
+              color: white;
+              font-weight: 700;
+              font-size: 12px;
+              padding: 6px 14px;
+              border-radius: 16px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            ">
+              ${i.priority || "normal"}
+            </span>
+          </div>
         </div>
 
-        <div style="opacity:.8;margin-top:6px">Cantidad: ${i.quantity || 0}</div>
-        <div style="opacity:.8">Prioridad: ${i.priority || "normal"}</div>
-        <div style="opacity:.8">Fecha entrega: ${i.dueDate || "—"}</div>
-        ${isPending ? `<div style="opacity:.8">Días afuera: ${days}</div>` : ""}
-
+        <!-- Datos secundarios en grid mejorado -->
         <div style="
-          position:absolute;
-          right:10px;
-          top:10px;
-          display:flex;
-          gap:10px;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+          gap: 16px;
+          font-size: 15px;
+          opacity: 0.95;
+          margin-bottom: 20px;
         ">
+          <div style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            transition: transform 0.2s ease;
+          " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <span style="color: #fbbf24; font-size: 20px;">📦</span> 
+            Cantidad: ${i.quantity}
+          </div>
+          <div style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #374151, #1f2937);
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            transition: transform 0.2s ease;
+          " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <span style="color: #10b981; font-size: 20px;">⏰</span> 
+            Entrega: ${dueDateStr}
+          </div>
+          <div style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #374151, #1f2937);
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-weight: 600;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            transition: transform 0.2s ease;
+          " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <span style="color: #3b82f6; font-size: 20px;">📝</span> 
+            Registrado: ${createdAtStr}
+          </div>
+          ${isPending ? `<div style="
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, ${borderColor}, ${borderColor}aa);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-weight: 700;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+            transition: transform 0.2s ease;
+          " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+            <span style="font-size: 20px;">⚠️</span>
+            Días afuera: ${days}
+          </div>` : ""}
+        </div>
+
+        <!-- Botones con animaciones mejoradas -->
+        <div style="display: flex; flex-wrap: wrap; gap: 14px;">
+          <button class="small" style="
+            flex: 1;
+            min-width: 130px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+          " 
+          onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.4)'" 
+          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.3)'"
+          data-action="edit" data-id="${i.id}" data-type="${isPending ? "pending" : "loans"}">✏️ Editar</button>
           ${
             isPending
-              ? `
-                <button class="small" style="background:#ef4444;border:none" 
-                  data-action="deletePending" data-id="${i.id}">🗑️</button>
-                <button class="small" style="background:#4ade80;border:none" 
-                  data-action="returnPending" data-id="${i.id}">🔄</button>
-              `
-              : `
-                <button class="small" style="background:#facc15;border:none" 
-                  data-action="pending" data-id="${i.id}">⏳</button>
-                <button class="small" style="background:#ef4444;border:none" 
-                  data-action="delete" data-id="${i.id}">🗑️</button>
-              `
+              ? `<button class="small" style="
+                  flex: 1;
+                  min-width: 130px;
+                  background: linear-gradient(135deg, #ef4444, #dc2626);
+                  color: white;
+                  border: none;
+                  border-radius: 14px;
+                  padding: 12px 16px;
+                  font-size: 15px;
+                  font-weight: 700;
+                  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+                  transition: all 0.3s ease;
+                  cursor: pointer;
+                " 
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.4)'" 
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.3)'"
+                data-action="deletePending" data-id="${i.id}">🗑️ Borrar</button>
+                 <button class="small" style="
+                  flex: 1;
+                  min-width: 130px;
+                  background: linear-gradient(135deg, #22c55e, #16a34a);
+                  color: white;
+                  border: none;
+                  border-radius: 14px;
+                  padding: 12px 16px;
+                  font-size: 15px;
+                  font-weight: 700;
+                  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+                  transition: all 0.3s ease;
+                  cursor: pointer;
+                " 
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.4)'" 
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.3)'"
+                data-action="returnPending" data-id="${i.id}">🔄 Devolver</button>`
+              : `<button class="small" style="
+                  flex: 1;
+                  min-width: 130px;
+                  background: linear-gradient(135deg, #f59e0b, #d97706);
+                  color: white;
+                  border: none;
+                  border-radius: 14px;
+                  padding: 12px 16px;
+                  font-size: 15px;
+                  font-weight: 700;
+                  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+                  transition: all 0.3s ease;
+                  cursor: pointer;
+                " 
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.4)'" 
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.3)'"
+                data-action="pending" data-id="${i.id}">⏳ Pendiente</button>
+                 <button class="small" style="
+                  flex: 1;
+                  min-width: 130px;
+                  background: linear-gradient(135deg, #ef4444, #dc2626);
+                  color: white;
+                  border: none;
+                  border-radius: 14px;
+                  padding: 12px 16px;
+                  font-size: 15px;
+                  font-weight: 700;
+                  box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+                  transition: all 0.3s ease;
+                  cursor: pointer;
+                " 
+                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.4)'" 
+                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 12px rgba(0,0,0,0.3)'"
+                data-action="delete" data-id="${i.id}">🗑️ Borrar</button>`
           }
         </div>
+
       </div>
     `;
-  }
+  });
 
   details.innerHTML = html;
+
+  // Animar el panel deslizándose
+  panel.style.transition = 'right 0.5s ease-out';
   panel.style.right = "0";
+
+  // Animar elementos después de renderizar
+  setTimeout(() => {
+    const header = document.getElementById('header');
+    const total = document.getElementById('total');
+    const items = document.querySelectorAll('.loan-item');
+
+    if (header) animateIn(header, 0);
+    if (total) animateIn(total, 200);
+    items.forEach((item, index) => animateIn(item, 400 + index * 100));
+  }, 100);
 }
+
 
 document.getElementById("closePanel").onclick = () => {
   document.getElementById("sidePanel").style.right = "-500px";
 };
 
+async function startEdit(id) {
+  const item =
+    loans.find(x => x.id === id) ||
+    pending.find(x => x.id === id);
+
+  if (!item) return;
+
+  Swal.fire({
+    title: "Editar registro",
+    html: `
+      <input id="editPerson" class="swal2-input" placeholder="Persona" value="${item.person}">
+      <input id="editTool" class="swal2-input" placeholder="Herramienta" value="${item.tool}">
+      <input id="editQty" type="number" class="swal2-input" placeholder="Cantidad" value="${item.quantity}">
+      <input id="editPriority" class="swal2-input" placeholder="Prioridad" value="${item.priority}">
+      <input id="editDue" type="date" class="swal2-input" value="${item.dueDate ? item.dueDate.split('T')[0] : ""}">
+    `,
+    confirmButtonText: "Guardar",
+    showCancelButton: true,
+  }).then(async (res) => {
+    if (!res.isConfirmed) return;
+
+    const updated = {
+      person: document.getElementById("editPerson").value.trim(),
+      tool: document.getElementById("editTool").value.trim(),
+      quantity: Number(document.getElementById("editQty").value),
+      priority: document.getElementById("editPriority").value.trim(),
+      dueDate: document.getElementById("editDue").value || null,
+    };
+
+    await updateLoanFirestore(id, updated);
+
+    Swal.fire("Actualizado", "Los cambios fueron guardados.", "success");
+
+    loadData();
+  });
+}
+
+
+async function updateLoanFirestore(id, data) {
+  // Detecta si el registro está en loans o pending
+  const isPending = pending.some(x => x.id === id);
+  const collectionName = isPending ? "pending" : "loans";
+  const docRef = doc(db, collectionName, id);
+
+  // Actualiza en Firestore
+  await updateDoc(docRef, data);
+
+  // Actualiza array local
+  const item = isPending ? pending.find(x => x.id === id) : loans.find(x => x.id === id);
+  Object.assign(item, data);
+
+  // Refresca detalles si el panel está abierto
+  openDetails(item.person, isPending ? "pending" : "active");
+}
 
 
 /* ============================================================
@@ -867,12 +1809,38 @@ document.addEventListener("click", (ev) => {
   /* ============================
      🗑️ BORRAR ACTIVO
      ============================ */
-  if (action === "delete") {
-    if (confirm("¿Seguro que deseas borrar este registro?")) {
-      removeLoan(id);
-      removeItemFromDetails(id); // 🔹 También para activos
-    }
-  }
+if (action === "delete") {
+  const item = loans.find(l => l.id === id);
+  if (!item) return;
+
+  // Pedir al usuario la cantidad a eliminar
+  let qtyToRemove = parseInt(prompt(`Cantidad actual: ${item.quantity}. ¿Cuántas quieres eliminar?`, "1"), 10);
+  if (!qtyToRemove || qtyToRemove <= 0) return;
+
+  // Llamamos a removeQuantity que maneja Firestore y arrays locales
+  removeQuantity(id, "loans", qtyToRemove)
+  
+    .then(() => {
+      const card = document.querySelector(`.loan-item[data-id="${id}"]`);
+      if (!card) return;
+
+      // Si la cantidad quedó <= 0, la tarjeta ya se elimina en removeQuantity
+      if (item.quantity > 0) {
+        // Actualizamos cantidad visible en la tarjeta
+        const qtyDivs = Array.from(card.querySelectorAll("div")).filter(d => d.textContent.includes("Cantidad:"));
+        if (qtyDivs.length > 0) {
+          qtyDivs[0].innerHTML = `📦 Cantidad: ${item.quantity}`;
+        }
+
+        // Opcional: animación breve para indicar actualización
+        card.style.transition = "transform 0.2s";
+        card.style.transform = "scale(1.03)";
+        setTimeout(() => card.style.transform = "scale(1)", 200);
+      }
+    })
+    .catch(err => console.error("Error eliminando cantidad:", err));
+    
+}
 
   if (action === "details-person") {
     const type = btn.dataset.type || "active";
@@ -887,6 +1855,43 @@ document.addEventListener("click", (ev) => {
   }
 
 
+    /* =========================
+    ✏️ EDITAR REGISTRO
+    ========================= */
+    if (action === "edit") {
+        const item =
+            loans.find(x => x.id === id) ||
+            pending.find(x => x.id === id);
+        if (!item) return;
+
+        const isPending = pending.some(x => x.id === id);
+
+        const newTool = prompt("Herramienta:", item.tool) || item.tool;
+        const newQty = parseInt(prompt("Cantidad:", item.quantity), 10) || item.quantity;
+        const newPriority = prompt("Prioridad (alta/normal/baja):", item.priority) || item.priority;
+        const newDueDate = prompt("Fecha de entrega (YYYY-MM-DD):", item.dueDate || "") || item.dueDate;
+
+        const docRef = doc(db, isPending ? "pending" : "loans", id);
+
+        updateDoc(docRef, {
+            tool: newTool,
+            quantity: newQty,
+            priority: newPriority,
+            dueDate: newDueDate
+        }).then(() => {
+            // Actualizar array local
+            item.tool = newTool;
+            item.quantity = newQty;
+            item.priority = newPriority;
+            item.dueDate = newDueDate;
+
+            // Si está abierto el panel, refrescar detalles
+            openDetails(item.person, isPending ? "pending" : "active");
+        }).catch(err => console.error("Error al actualizar:", err));
+    }
+
+
+
 
   /* ============================
      ⏳ MOVER A PENDIENTES (1 item)
@@ -899,12 +1904,17 @@ document.addEventListener("click", (ev) => {
   /* ============================
      🗑️ BORRAR DE PENDIENTES (1 item)
      ============================ */
-if (action === "deletePending") {
-  if (confirm("¿Seguro que deseas borrar este registro?")) {
-    deleteDoc(doc(db, "pending", id));
-    removeItemFromDetails(id); // 🔹 Esto actualiza el panel instantáneamente
-  }
-}
+    if (action === "deletePending") {
+    const item = pending.find(l => l.id === id);
+    if (!item) return;
+
+    let qtyToRemove = parseInt(prompt(`Cantidad actual: ${item.quantity}. ¿Cuántas quieres eliminar?`, "1"), 10);
+    if (!qtyToRemove || qtyToRemove <= 0) return;
+
+    removeQuantity(id, "pending", qtyToRemove);
+    removeItemFromDetails(id); // Actualiza el panel si borramos todo
+    }
+
 
 
   /* ============================
@@ -933,7 +1943,20 @@ if (action === "deletePending") {
       .forEach(x => toggleReturned(x.id));
   }
 
+if (ev.target.closest("#downloadPendingPDF")) {
+    console.log("Botón PDF pendientes clickeado");
+    generatePendingPDF();
+}
+
+if (ev.target.closest("#downloadActiveTodayPDF")) {
+    console.log("Botón PDF activos hoy clickeado");
+    generateActiveTodayPDF();
+}
+
+
 });
+
+
 
 
 $("loanForm").addEventListener("submit", async (e)=>{
